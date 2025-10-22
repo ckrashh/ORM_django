@@ -1,0 +1,94 @@
+from producto.models import Producto
+
+#Productos con precio mayor a 50:
+producto_50 = Producto.objects.filter(precio__gt=50)
+print(producto_50)
+
+print("-"*50)
+
+#Productos cuyo nombre empiece con "A":
+producto_A = Producto.objects.filter(nombre__startswith="A")
+print(producto_A)
+
+print("-"*50)
+
+#Productos disponibles:
+producto_dispo = Producto.objects.filter(disponible=True)
+print(producto_dispo)
+
+#Ejecutando Queries SQL desde Django
+query = "SELECT * FROM producto_producto WHERE precio < 100"
+productos_100 = Producto.objects.raw(query)
+for p in productos_100:
+    print(p.nombre, p.precio)
+
+print("-"*50)
+
+#Mapeando Campos de Consultas al Modelo
+query = "SELECT id, nombre, precio, disponible FROM producto_producto WHERE disponible = %s"
+productos_map = Producto.objects.raw(query, [True])
+
+for p in productos_map:
+    print(p.id, p.nombre, p.precio)
+
+print("-"*50)
+
+#Exclusión de Campos del Modelo
+productos_ex = Producto.objects.values('id', 'nombre', 'precio')
+print(productos_ex)
+
+print("-"*50)
+
+#Añadiendo Anotaciones en Consultas
+from django.db.models import F, ExpressionWrapper, DecimalField
+
+productos_con_impuesto = Producto.objects.annotate(
+    precio_con_impuesto=ExpressionWrapper(
+        F('precio') * 1.16,
+        output_field=DecimalField(max_digits=6, decimal_places=2)
+    )
+)
+
+for p in productos_con_impuesto:
+    print(p.nombre, p.precio_con_impuesto)
+
+print("-"*50)
+
+#Pasando Parámetros a raw()
+precio_limite = 80
+productos_param = Producto.objects.raw(
+    "SELECT * FROM producto_producto WHERE precio < %s", [precio_limite]
+)
+
+for p in productos_param:
+    print(p)
+
+print("-"*50)
+
+#Ejecutando SQL Personalizado Directamente
+from django.db import connection
+
+with connection.cursor() as cursor:
+    cursor.execute("UPDATE producto_producto SET disponible = FALSE WHERE precio > 90")
+
+print("-"*50)
+
+#Conexiones y Cursores
+from django.db import connection
+
+with connection.cursor() as cursor:
+    cursor.execute("SELECT nombre, precio FROM producto_producto")
+    resultados = cursor.fetchall()
+
+for nombre, precio in resultados:
+    print(nombre, precio)
+
+print("-"*50)
+
+#Invocación a Procedimientos Almacenados
+with connection.cursor() as cursor:
+    cursor.callproc('obtener_productos_disponibles')
+    resultados = cursor.fetchall()
+
+for fila in resultados:
+    print(fila)
