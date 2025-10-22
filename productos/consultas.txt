@@ -25,11 +25,9 @@ for p in productos_100:
 print("-"*50)
 
 #Mapeando Campos de Consultas al Modelo
-query = "SELECT id, nombre, precio, disponible FROM producto_producto WHERE disponible = %s"
-productos_map = Producto.objects.raw(query, [True])
-
-for p in productos_map:
-    print(p.id, p.nombre, p.precio)
+producto_map = Producto.objects.only('nombre')
+for p in producto_map:
+    print(p)
 
 print("-"*50)
 
